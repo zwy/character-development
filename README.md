@@ -1,6 +1,6 @@
 # 角色开发与提示词资产化 Skill｜使用说明
 
-版本：1.0.0  
+版本：1.1.0  
 日期：2026-10-20
 
 ## 这是什么
@@ -12,7 +12,7 @@
 ## 包内内容
 
 - SKILL.md：带name与description元数据的核心入口。
-- references/：阶段、输入模式、证据与验收规则。
+- references/：阶段、输入模式、证据与验收规则、语言长度与字符预算。
 - templates/：项目状态、轮次回复、提示词记录与最终角色文档模板。
 - examples/：缇珞插画与真人路线案例，不是默认角色配置。
 - scripts/prompt_budget.py：Python标准库字符统计和粗粒度占位符检查。
@@ -77,17 +77,25 @@ templates是空白表单，不是当前项目状态。为每个实际角色复�
 需要Python 3，只有标准库依赖。在解压后的技能目录执行：
 
 ```bash
-python3 scripts/prompt_budget.py my-prompt.txt --budget 1000 --strict
+python3 scripts/prompt_budget.py my-prompt.txt --budget 2000 --strict
 python3 scripts/prompt_budget.py templates/character-document.md --markdown --budget 2000
+python3 scripts/prompt_budget.py my-prompt.txt --budget 2000 --strict --language en
 ```
 
 - 普通模式统计整个文件，包含空格和换行；保存文件时的末尾换行也会计入。
 - Markdown模式统计每个text代码块，排除围栏及围栏分隔换行。
 - CRLF或CR换行统一为LF；按Python len统计，不是模型token。
 - --strict遇到超预算或粗略占位符候选返回1；无此参数只报告。
+- --language en额外输出等效中文字符数估计，用于判断英文提示词的预算还够不够。
 - 正常运行返回0；读取或用法错误返回2。
 - 模板中的占位符本来就需要保留，不能把模板检查报告当作交付失败。
 - 占位符检查有局限；脚本不核验身份、服装一致性、矛盾、图片质量、授权或平台真实限制。
+
+## 语言与字符上限
+
+- 提示词语言跟随用户本轮的沟通语言：中文沟通用中文提示词，其他语言沟通用英文提示词。
+- 平台字符上限是硬边界，超出即无法提交。即梦为 2000 字符。
+- 等义英文的字符数约为中文的 3.6–5.0 倍：2000 字符的中文预算约等于 480 字符的等义英文。英文超限时的压缩顺序见 `references/length-and-language.md`。
 
 ## V1.0不强制覆盖
 
@@ -102,7 +110,10 @@ python3 scripts/prompt_budget.py templates/character-document.md --markdown --bu
 5. 没有结果图时，不声称逐图检查通过。
 6. 角色名和案例属性不污染新项目。
 7. 资产化后保留原文、整理版、长度与待测边界。
+8. 提示词语言跟随用户沟通语言，英文超限时按既定顺序压缩，交付前用 --strict 校验平台上限。
+9. 平台上限视作硬边界：超限的示例不标为合规。
 
 ## 版本记录
 
+1.1.0（2026-10-20）：新增语言、长度与字符预算规则。提示词语言跟随用户沟通语言；即梦 2000 字符按硬上限处理；记录等义英文约为中文 3.6–5.0 倍的膨胀率并给出英文超限的压缩顺序。prompt_budget.py 增加 --language 选项。
 1.0.0（2026-10-20）：首版。基于缇珞插画与真人路线提炼；技能本身尚未完成新角色跨项目实测，包内静态检查不等于流程效果验证。
